@@ -1,9 +1,14 @@
 <BenchWeb.Layouts.header />
 <BenchWeb.Layouts.sidebar />
 
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-2xl">
-    <.flash_group flash={@flash} />
+<div class="p-4 sm:ml-64">
+  <.flash_group flash={@flash} />
+  <div class="
+          p-4 border-2 border-white-200 border-dashed rounded-lg dark:border-gray-700
+          mt-14
+        ">
     <%= @inner_content %>
   </div>
-</main>
+
+  <BenchWeb.Layouts.footer />
+</div>

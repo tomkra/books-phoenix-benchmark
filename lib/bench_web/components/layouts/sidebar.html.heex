@@ -9,8 +9,24 @@
 >
   <div class="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
     <ul class="space-y-2 font-medium">
-      <li></li>
-      <li></li>
+      <li>
+        <.link
+          patch={~p"/authors"}
+          class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+        >
+          <.icon name="hero-users" class="h-5 w-5" />
+          <span class="flex-1 ms-3 whitespace-nowrap">Authors</span>
+        </.link>
+      </li>
+      <li>
+        <.link
+          patch={~p"/books"}
+          class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+        >
+          <.icon name="hero-book-open" class="h-5 w-5" />
+          <span class="flex-1 ms-3 whitespace-nowrap">Books</span>
+        </.link>
+      </li>
     </ul>
   </div>
 </aside>
