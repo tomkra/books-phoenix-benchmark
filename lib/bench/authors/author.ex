@@ -1,12 +1,14 @@
 defmodule Bench.Authors.Author do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Bench.Books.Book
 
   schema "authors" do
     field :name, :string
     field :birth, :date
     field :death, :date
     field :books_count, :integer
+    has_many :books, Book
 
     timestamps(type: :utc_datetime)
   end
@@ -26,11 +28,17 @@ defmodule Bench.Authors.Author do
     death = get_field(changeset, :death)
 
     case {birth, death} do
-      {nil, _} -> changeset
-      {_, nil} -> changeset
+      {nil, _} ->
+        changeset
+
+      {_, nil} ->
+        changeset
+
       {b, d} when b >= d ->
         add_error(changeset, :death, "can't be before birth")
-      _ -> changeset
+
+      _ ->
+        changeset
     end
   end
 
@@ -41,10 +49,14 @@ defmodule Bench.Authors.Author do
       value = get_field(changeset, field)
 
       case value do
-        nil -> changeset
+        nil ->
+          changeset
+
         _ when value > date ->
           add_error(changeset, field, "can't be in the future")
-        _ -> changeset
+
+        _ ->
+          changeset
       end
     end)
   end

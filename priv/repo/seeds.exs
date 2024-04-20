@@ -10,11 +10,24 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
+alias Bench.Repo
+
 for _ <- 1..10 do
   author = %Bench.Authors.Author{
     name: Faker.Person.name(),
     birth: Faker.Date.date_of_birth()
   }
 
-  Bench.Repo.insert!(author)
+  Repo.insert!(author)
+
+  for _ <- 1..Enum.random(5..10) do
+    book = %Bench.Books.Book{
+      title: "#{Faker.Lorem.word()} #{SecureRandom.hex(2)}",
+      year_published: Faker.Date.date_of_birth().year(),
+      isbn: Faker.Code.isbn(),
+      price: Faker.Commerce.price()
+    }
+
+    Ecto.build_assoc(author, :books, book) |> Repo.insert!()
+  end
 end

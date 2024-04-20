@@ -59,7 +59,8 @@ defmodule Bench.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
       {:ex_machina, "~> 2.7.0", only: :test},
-      {:faker, "~> 0.18"}
+      {:faker, "~> 0.18"},
+      {:secure_random, "~> 0.5"}
     ]
   end
 
