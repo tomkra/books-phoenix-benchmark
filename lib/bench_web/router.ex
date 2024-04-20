@@ -17,7 +17,9 @@ defmodule BenchWeb.Router do
   scope "/", BenchWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", AuthorsLive
+    live "/authors", AuthorsLive
+    live "/books", BooksLive
   end
 
   # Other scopes may use custom stacks.
