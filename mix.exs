@@ -60,7 +60,8 @@ defmodule Bench.MixProject do
       {:bandit, "~> 1.2"},
       {:ex_machina, "~> 2.7.0", only: :test},
       {:faker, "~> 0.18"},
-      {:secure_random, "~> 0.5"}
+      {:secure_random, "~> 0.5"},
+      {:turbo_ecto, "~> 1.0.1"}
     ]
   end
 
