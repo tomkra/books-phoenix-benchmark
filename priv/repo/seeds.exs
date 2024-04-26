@@ -12,7 +12,7 @@
 
 alias Bench.Repo
 
-for _ <- 1..10 do
+for _ <- 1..100 do
   author = %Bench.Authors.Author{
     name: Faker.Person.name(),
     birth: Faker.Date.date_of_birth()
