@@ -14,10 +14,10 @@ defmodule Bench.Books do
     |> Repo.preload(:author)
   end
 
-  def create_book(attrs \\ %{}) do
-    %Book{}
+  def create_book(author, attrs \\ %{}) do
+    %Book{author: author}
     |> Book.changeset(attrs)
-    |> Repo.insert()
+    |> Repo.insert!()
   end
 
   def delete_author(%Book{} = book) do

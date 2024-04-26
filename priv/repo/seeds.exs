@@ -10,24 +10,37 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias Bench.{Repo, Authors, Books}
+alias Bench.{Repo, Authors, Books, Authors.Author, Books.Book}
+import Ecto.Query
 
 for _ <- 1..100 do
-  author = %Bench.Authors.Author{
+  author = %{
     name: Faker.Person.name(),
-    birth: Faker.Date.date_of_birth()
+    birth: Faker.Date.date_of_birth(100..1000)
   }
 
-  author = Repo.insert!(author)
+  {:ok, author} = Authors.create_author(author)
 
-  for _ <- 1..Enum.random(5..10) do
-    book = %Bench.Books.Book{
+  for _ <- 1..Enum.random(5..50) do
+    book = %{
       title: "#{Faker.Lorem.word()} #{SecureRandom.hex(2)}",
-      year_published: Faker.Date.date_of_birth().year(),
+      year_published: Faker.Date.date_of_birth(100..1000).year(),
       isbn: Faker.Code.isbn(),
       price: Faker.Commerce.price()
     }
 
-    Ecto.build_assoc(author, :books, book) |> Repo.insert!()
+    Books.create_book(author, book)
   end
 end
+
+Repo.all(Author)
+|> Enum.each(fn author ->
+  books_count =
+    Book
+    |> where([b], b.author_id == ^author.id)
+    |> Repo.aggregate(:count)
+
+  author
+  |> Ecto.Changeset.cast(%{books_count: books_count}, [:books_count])
+  |> Repo.update()
+end)

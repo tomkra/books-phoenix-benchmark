@@ -21,7 +21,7 @@ defmodule Bench.Books.Book do
     |> validate_required([:title, :isbn])
     |> validate_length(:title, max: 255)
     |> validate_number(:year_published, greater_than_or_equal_to: 0)
-    |> validate_format(:year_published, ~r/^\d+$/)
+    # |> validate_format(:year_published, ~r/^\d+$/)
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> unsafe_validate_unique([:title, :author_id], Bench.Repo)
     # |> unique_constraint([:title, :author_id])

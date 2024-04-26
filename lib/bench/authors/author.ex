@@ -13,6 +13,12 @@ defmodule Bench.Authors.Author do
     timestamps(type: :utc_datetime)
   end
 
+  defimpl String.Chars, for: __MODULE__ do
+    def to_string(map) do
+      "#{map.id} #{map.name}"
+    end
+  end
+
   @doc false
   def changeset(author, attrs) do
     author
@@ -48,14 +54,14 @@ defmodule Bench.Authors.Author do
     Enum.reduce(fields, changeset, fn field, changeset ->
       value = get_field(changeset, field)
 
-      case value do
-        nil ->
+      cond do
+        is_nil(value) ->
           changeset
 
-        _ when value > date ->
+        Date.compare(value, date) == :gt ->
           add_error(changeset, field, "can't be in the future")
 
-        _ ->
+        true ->
           changeset
       end
     end)
