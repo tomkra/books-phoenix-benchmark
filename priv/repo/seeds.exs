@@ -10,7 +10,7 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias Bench.Repo
+alias Bench.{Repo, Authors, Books}
 
 for _ <- 1..100 do
   author = %Bench.Authors.Author{
@@ -18,7 +18,7 @@ for _ <- 1..100 do
     birth: Faker.Date.date_of_birth()
   }
 
-  Repo.insert!(author)
+  author = Repo.insert!(author)
 
   for _ <- 1..Enum.random(5..10) do
     book = %Bench.Books.Book{
