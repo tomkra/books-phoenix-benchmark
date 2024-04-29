@@ -7,15 +7,15 @@ defmodule BenchWeb.AuthorsLive do
     {:ok, socket, temporary_assigns: [authors: []]}
   end
 
-  def handle_params(_params, _uri, socket) do
+  def handle_params(params, _uri, socket) do
     page = 1
     per_page = 20
 
     filters = %{
       page: page,
       per_page: per_page,
-      sort_by: nil,
-      sort_order: :desc
+      sort_by: valid_sort_by(params),
+      sort_order: valid_sort_order(params)
     }
 
     socket = assign_form(socket, Authors.change_author(%Author{}))
@@ -105,12 +105,32 @@ defmodule BenchWeb.AuthorsLive do
   def sort_link(assigns) do
     ~H"""
     <.link
-      patch={~p"/authors?#{%{filters: %{sort_by: @sort_by, sort_order: @sort_order}}}"}
+      patch={
+        ~p"/authors?#{%{filters: %{sort_by: @sort_by, sort_order: next_sort_order(@filters.sort_order)}}}"
+      }
       class="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
     >
       <%= render_slot(@inner_block) %>
+      <%= sort_indicator(@sort_by, @filters) %>
     </.link>
     """
+  end
+
+  defp sort_indicator(column, %{sort_by: sort_by, sort_order: sort_order})
+       when column == sort_by do
+    case sort_order do
+      :asc -> "👆"
+      :desc -> "👇"
+    end
+  end
+
+  defp sort_indicator(_, _), do: ""
+
+  defp next_sort_order(sort_order) do
+    case sort_order do
+      :asc -> :desc
+      :desc -> :asc
+    end
   end
 
   def handle_event("new-author", _, socket) do
@@ -124,4 +144,16 @@ defmodule BenchWeb.AuthorsLive do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, form: to_form(changeset))
   end
+
+  defp valid_sort_by(%{"sort_by" => sort_by}) when sort_by in ~w(id) do
+    String.to_atom(sort_by)
+  end
+
+  defp valid_sort_by(_params), do: :id
+
+  defp valid_sort_order(%{"sort_order" => sort_order}) when sort_order in ~w(asc desc) do
+    String.to_atom(sort_order)
+  end
+
+  defp valid_sort_order(_params), do: :asc
 end

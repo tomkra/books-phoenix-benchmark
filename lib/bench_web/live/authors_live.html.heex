@@ -32,7 +32,9 @@
     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
       <tr>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("ID") %>
+          <.sort_link sort_by={:id} filters={@filters}>
+            <%= gettext("ID") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
           <%= gettext("Name") %>

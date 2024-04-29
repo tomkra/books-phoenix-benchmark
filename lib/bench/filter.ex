@@ -9,5 +9,11 @@ defmodule Bench.Filter do
     |> offset(^offset)
   end
 
-  def paginate(query, _options), do: query
+  def paginate(query, _filters), do: query
+
+  def sort(query, %{sort_by: sort_by, sort_order: sort_order}) do
+    order_by(query, {^sort_order, ^sort_by})
+  end
+
+  def sort(query, _filters), do: query
 end
