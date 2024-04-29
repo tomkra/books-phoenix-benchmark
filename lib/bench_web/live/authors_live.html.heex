@@ -37,16 +37,24 @@
           </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Name") %>
+          <.sort_link sort_by={:name} filters={@filters}>
+            <%= gettext("Name") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Birth") %>
+          <.sort_link sort_by={:birth} filters={@filters}>
+            <%= gettext("Birth") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Death") %>
+          <.sort_link sort_by={:death} filters={@filters}>
+            <%= gettext("Death") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Books Count") %>
+          <.sort_link sort_by={:books_count} filters={@filters}>
+            <%= gettext("Books Count") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
           <%= gettext("action") %>

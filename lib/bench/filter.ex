@@ -16,4 +16,11 @@ defmodule Bench.Filter do
   end
 
   def sort(query, _filters), do: query
+
+  def next_sort_order(sort_order) do
+    case sort_order do
+      :asc -> :desc
+      :desc -> :asc
+    end
+  end
 end

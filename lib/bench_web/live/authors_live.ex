@@ -2,6 +2,7 @@ defmodule BenchWeb.AuthorsLive do
   use BenchWeb, :live_view
   alias Bench.Authors
   alias Bench.Authors.Author
+  alias Bench.Filter
 
   def mount(_params, _session, socket) do
     {:ok, socket, temporary_assigns: [authors: []]}
@@ -14,8 +15,8 @@ defmodule BenchWeb.AuthorsLive do
     filters = %{
       page: page,
       per_page: per_page,
-      sort_by: valid_sort_by(params),
-      sort_order: valid_sort_order(params)
+      sort_by: valid_sort_by(params["filters"]),
+      sort_order: valid_sort_order(params["filters"])
     }
 
     socket = assign_form(socket, Authors.change_author(%Author{}))
@@ -104,48 +105,24 @@ defmodule BenchWeb.AuthorsLive do
 
   def sort_link(assigns) do
     ~H"""
-    <.link
-      patch={
-        ~p"/authors?#{%{filters: %{sort_by: @sort_by, sort_order: next_sort_order(@filters.sort_order)}}}"
+    <.sort_link_shared
+      path={
+        ~p"/authors?#{%{filters: %{sort_by: @sort_by, sort_order: Filter.next_sort_order(@filters.sort_order)}}}"
       }
-      class="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+      filters={@filters}
+      sort_by={@sort_by}
     >
       <%= render_slot(@inner_block) %>
-      <%= sort_indicator(@sort_by, @filters) %>
-    </.link>
+    </.sort_link_shared>
     """
-  end
-
-  defp sort_indicator(column, %{sort_by: sort_by, sort_order: sort_order})
-       when column == sort_by do
-    case sort_order do
-      :asc -> "👆"
-      :desc -> "👇"
-    end
-  end
-
-  defp sort_indicator(_, _), do: ""
-
-  defp next_sort_order(sort_order) do
-    case sort_order do
-      :asc -> :desc
-      :desc -> :asc
-    end
-  end
-
-  def handle_event("new-author", _, socket) do
-    {:noreply, assign_form(socket, Authors.change_author(%Author{}))}
-  end
-
-  def handle_event("hide-form", _, socket) do
-    {:noreply, assign(socket, form: nil)}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, form: to_form(changeset))
   end
 
-  defp valid_sort_by(%{"sort_by" => sort_by}) when sort_by in ~w(id) do
+  defp valid_sort_by(%{"sort_by" => sort_by})
+       when sort_by in ~w(id name birth death books_count) do
     String.to_atom(sort_by)
   end
 
@@ -155,5 +132,13 @@ defmodule BenchWeb.AuthorsLive do
     String.to_atom(sort_order)
   end
 
-  defp valid_sort_order(_params), do: :asc
+  defp valid_sort_order(_params), do: :desc
+
+  def handle_event("new-author", _, socket) do
+    {:noreply, assign_form(socket, Authors.change_author(%Author{}))}
+  end
+
+  def handle_event("hide-form", _, socket) do
+    {:noreply, assign(socket, form: nil)}
+  end
 end
