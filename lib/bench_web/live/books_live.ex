@@ -1,11 +1,22 @@
 defmodule BenchWeb.BooksLive do
   use BenchWeb, :live_view
+  alias Bench.Books
 
   def mount(_params, _session, socket) do
-    {:ok, socket, temporary_assigns: [books: Bench.Books.list_books_with_author()]}
+    {:ok, socket, temporary_assigns: [books: Books.list_books_with_author()]}
   end
 
   def handle_params(_params, _uri, socket) do
+    page = 1
+    per_page = 20
+
+    filters = %{
+      page: page,
+      per_page: per_page
+    }
+
+    socket = assign(socket, filters: filters, books: Books.list_books_with_author(filters))
+
     {:noreply, socket}
   end
 

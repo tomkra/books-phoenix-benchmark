@@ -2,11 +2,18 @@ defmodule Bench.Authors do
   import Ecto.Query
   alias Bench.Repo
   alias Bench.Authors.Author
+  alias Bench.Filter
 
   def get_author!(id), do: Repo.get!(Author, id)
 
   def list_authors do
-    Repo.all(from a in Author, order_by: [asc: a.id])
+    Repo.all(from a in Author, order_by: [desc: a.id])
+  end
+
+  def list_authors(options) when is_map(options) do
+    from(Author)
+    |> Filter.paginate(options)
+    |> Repo.all()
   end
 
   def create_author(attrs \\ %{}) do
@@ -19,9 +26,7 @@ defmodule Bench.Authors do
     Repo.delete(author)
   end
 
-  def change_author(%Author{} = author, attrs) do
-    author
-    |> Author.changeset(attrs)
-    |> Repo.update()
+  def change_author(%Author{} = author, attrs \\ %{}) do
+    Author.changeset(author, attrs)
   end
 end

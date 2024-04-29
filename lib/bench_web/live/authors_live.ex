@@ -1,11 +1,28 @@
 defmodule BenchWeb.AuthorsLive do
   use BenchWeb, :live_view
+  alias Bench.Authors
+  alias Bench.Authors.Author
 
   def mount(_params, _session, socket) do
-    {:ok, socket, temporary_assigns: [authors: Bench.Authors.list_authors()]}
+    {:ok, socket, temporary_assigns: [authors: []]}
   end
 
   def handle_params(_params, _uri, socket) do
+    page = 1
+    per_page = 20
+
+    filters = %{
+      page: page,
+      per_page: per_page,
+      sort_by: nil,
+      sort_order: :desc
+    }
+
+    socket = assign_form(socket, Authors.change_author(%Author{}))
+
+    socket =
+      assign(socket, filters: filters, authors: Bench.Authors.list_authors(filters))
+
     {:noreply, socket}
   end
 
@@ -49,5 +66,62 @@ defmodule BenchWeb.AuthorsLive do
       </td>
     </tr>
     """
+  end
+
+  def author_form(assigns) do
+    ~H"""
+    <.form for={@form}>
+      <div class="flex space-x-5">
+        <div class="flex-1">
+          <.input field={@form[:name]} placeholder="Name" />
+        </div>
+        <div class="flex-1">
+          <.input field={@form[:birth]} type="date" placeholder="Birth" />
+        </div>
+        <div class="flex-1">
+          <.input field={@form[:name]} type="date" placeholder="Death" />
+        </div>
+
+        <div class="flex-1 flex">
+          <div class="flex items-center">
+            <.button phx-disable-with="Uploading...">
+              Save
+            </.button>
+
+            <button
+              phx-click="hide-form"
+              type="button"
+              class="ms-2 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </.form>
+    """
+  end
+
+  def sort_link(assigns) do
+    ~H"""
+    <.link
+      patch={~p"/authors?#{%{filters: %{sort_by: @sort_by, sort_order: @sort_order}}}"}
+      class="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+    >
+      <%= render_slot(@inner_block) %>
+    </.link>
+    """
+  end
+
+  def handle_event("new-author", _, socket) do
+    {:noreply, assign_form(socket, Authors.change_author(%Author{}))}
+  end
+
+  def handle_event("hide-form", _, socket) do
+    {:noreply, assign(socket, form: nil)}
+  end
+
+  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
+    assign(socket, form: to_form(changeset))
   end
 end

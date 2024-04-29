@@ -85,6 +85,7 @@ defmodule BenchWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import BenchWeb.CoreComponents
+      import BenchWeb.SharedComponents
       import BenchWeb.Gettext
 
       # Shortcut for generating JS commands
