@@ -20,12 +20,17 @@ defmodule BenchWeb.AuthorsLive do
     }
 
     socket =
-      assign(socket,
-        filters: filters,
-        authors: Bench.Authors.list_authors(filters),
-        form: nil,
-        live_action: nil
-      )
+      socket
+      |> assign(:filters, filters)
+      |> stream(:authors, Authors.list_authors(filters))
+      |> assign(:form, nil)
+
+    # socket =
+    #   assign(socket,
+    #     filters: filters,
+    #     authors: Bench.Authors.list_authors(filters),
+    #     form: nil
+    #   )
 
     {:noreply, socket}
   end
@@ -33,7 +38,7 @@ defmodule BenchWeb.AuthorsLive do
   def author(assigns) do
     ~H"""
     <tr
-      id={"author-#{@author.id}"}
+      id={@id}
       class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
     >
       <td class="px-6 py-4 whitespace-nowrap dark:text-white">
@@ -71,7 +76,7 @@ defmodule BenchWeb.AuthorsLive do
           class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
           phx-click={
             JS.push("delete", value: %{id: @author.id})
-            |> JS.hide(to: "#author-#{@author.id}", transition: "ease duration-500 scale-50")
+            |> JS.hide(to: "#{@id}", transition: "ease duration-500 scale-50")
           }
           phx-value-id={@author.id}
           data-confirm={gettext("Are you sure?")}
@@ -156,7 +161,8 @@ defmodule BenchWeb.AuthorsLive do
     author = Authors.get_author!(id)
 
     case Authors.update_author(author, author_params) do
-      {:ok, _author} ->
+      {:ok, author} ->
+        socket = stream_insert(socket, :authors, author)
         socket = put_flash(socket, :info, "Author updated successfully.")
         {:noreply, assign(socket, form: nil)}
 
@@ -167,7 +173,8 @@ defmodule BenchWeb.AuthorsLive do
 
   def handle_event("save", %{"author" => author_params}, socket) do
     case Authors.create_author(author_params) do
-      {:ok, _author} ->
+      {:ok, author} ->
+        socket = stream_insert(socket, :authors, author, at: 0)
         socket = put_flash(socket, :info, "Author created successfully.")
         author = Authors.change_author(%Author{})
         {:noreply, assign_form(socket, author)}
@@ -192,6 +199,7 @@ defmodule BenchWeb.AuthorsLive do
     author = Authors.get_author!(id)
     {:ok, _author} = Authors.delete_author(author)
 
+    socket = stream_delete(socket, :authors, author)
     socket = put_flash(socket, :info, "Author deleted successfully.")
 
     {:noreply, socket}

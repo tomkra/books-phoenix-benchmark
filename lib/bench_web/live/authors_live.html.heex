@@ -61,8 +61,8 @@
         </th>
       </tr>
     </thead>
-    <tbody id="authors_body">
-      <.author :for={author <- @authors} author={author} />
+    <tbody id="authors" phx-update="stream">
+      <.author :for={{author_id, author} <- @streams.authors} author={author} id={author_id} />
     </tbody>
   </table>
 </div>
