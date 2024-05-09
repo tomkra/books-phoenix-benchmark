@@ -19,17 +19,23 @@ defmodule BenchWeb.AuthorsLive do
       sort_order: valid_sort_order(params["filters"])
     }
 
-    socket = assign_form(socket, Authors.change_author(%Author{}))
-
     socket =
-      assign(socket, filters: filters, authors: Bench.Authors.list_authors(filters))
+      assign(socket,
+        filters: filters,
+        authors: Bench.Authors.list_authors(filters),
+        form: nil,
+        live_action: nil
+      )
 
     {:noreply, socket}
   end
 
   def author(assigns) do
     ~H"""
-    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+    <tr
+      id={"author-#{@author.id}"}
+      class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+    >
       <td class="px-6 py-4 whitespace-nowrap dark:text-white">
         <%= @author.id %>
       </td>
@@ -54,13 +60,21 @@ defmodule BenchWeb.AuthorsLive do
         <button
           title={gettext("Edit")}
           class="font-medium text-blue-600 dark:text-blue-500 hover:underline ms-3"
+          phx-value-id={@author.id}
+          phx-click="edit"
         >
           <.icon name="hero-pencil-square" />
         </button>
 
         <button
-          title={gettext("Edit")}
+          title={gettext("Delete")}
           class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3"
+          phx-click={
+            JS.push("delete", value: %{id: @author.id})
+            |> JS.hide(to: "#author-#{@author.id}", transition: "ease duration-500 scale-50")
+          }
+          phx-value-id={@author.id}
+          data-confirm={gettext("Are you sure?")}
         >
           <.icon name="hero-trash" />
         </button>
@@ -71,7 +85,7 @@ defmodule BenchWeb.AuthorsLive do
 
   def author_form(assigns) do
     ~H"""
-    <.form for={@form}>
+    <.form :if={@form} phx-value-id={@form.data.id} for={@form} phx-submit="save" id="author-form">
       <div class="flex space-x-5">
         <div class="flex-1">
           <.input field={@form[:name]} placeholder="Name" />
@@ -80,12 +94,12 @@ defmodule BenchWeb.AuthorsLive do
           <.input field={@form[:birth]} type="date" placeholder="Birth" />
         </div>
         <div class="flex-1">
-          <.input field={@form[:name]} type="date" placeholder="Death" />
+          <.input field={@form[:death]} type="date" placeholder="Death" />
         </div>
 
         <div class="flex-1 flex">
           <div class="flex items-center">
-            <.button phx-disable-with="Uploading...">
+            <.button type="submit" phx-disable-with="Saving...">
               Save
             </.button>
 
@@ -117,10 +131,6 @@ defmodule BenchWeb.AuthorsLive do
     """
   end
 
-  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    assign(socket, form: to_form(changeset))
-  end
-
   defp valid_sort_by(%{"sort_by" => sort_by})
        when sort_by in ~w(id name birth death books_count) do
     String.to_atom(sort_by)
@@ -134,11 +144,60 @@ defmodule BenchWeb.AuthorsLive do
 
   defp valid_sort_order(_params), do: :desc
 
-  def handle_event("new-author", _, socket) do
+  def handle_event("new", _, socket) do
     {:noreply, assign_form(socket, Authors.change_author(%Author{}))}
   end
 
   def handle_event("hide-form", _, socket) do
     {:noreply, assign(socket, form: nil)}
+  end
+
+  def handle_event("save", %{"id" => id, "author" => author_params}, socket) do
+    author = Authors.get_author!(id)
+
+    case Authors.update_author(author, author_params) do
+      {:ok, _author} ->
+        socket = put_flash(socket, :info, "Author updated successfully.")
+        {:noreply, assign(socket, form: nil)}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  def handle_event("save", %{"author" => author_params}, socket) do
+    case Authors.create_author(author_params) do
+      {:ok, _author} ->
+        socket = put_flash(socket, :info, "Author created successfully.")
+        author = Authors.change_author(%Author{})
+        {:noreply, assign_form(socket, author)}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        socket = assign_form(socket, changeset)
+        socket = put_flash(socket, :error, "Error creating author.")
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("edit", %{"id" => id}, socket) do
+    author = Authors.get_author!(id)
+    {:noreply, assign_form(socket, Authors.change_author(author))}
+  end
+
+  def handle_event("update", %{"author" => author_params}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("delete", %{"id" => id}, socket) do
+    author = Authors.get_author!(id)
+    {:ok, _author} = Authors.delete_author(author)
+
+    socket = put_flash(socket, :info, "Author deleted successfully.")
+
+    {:noreply, socket}
+  end
+
+  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
+    assign(socket, form: to_form(changeset))
   end
 end

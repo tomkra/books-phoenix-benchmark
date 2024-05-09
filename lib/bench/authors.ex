@@ -23,6 +23,12 @@ defmodule Bench.Authors do
     |> Repo.insert()
   end
 
+  def update_author(%Author{} = author, attrs \\ %{}) do
+    author
+    |> Author.changeset(attrs)
+    |> Repo.update()
+  end
+
   def delete_author(%Author{} = author) do
     Repo.delete(author)
   end

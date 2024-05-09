@@ -2,7 +2,7 @@ defmodule BenchWeb.SharedComponents do
   use Phoenix.Component
 
   # alias Phoenix.LiveView.JS
-  import BenchWeb.Gettext
+  # import BenchWeb.Gettext
 
   slot :inner_block, required: true
 
