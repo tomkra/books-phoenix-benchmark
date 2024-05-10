@@ -36,4 +36,8 @@ defmodule Bench.Authors do
   def change_author(%Author{} = author, attrs \\ %{}) do
     Author.changeset(author, attrs)
   end
+
+  def authors_count do
+    Repo.aggregate(Author, :count, :id)
+  end
 end

@@ -25,6 +25,7 @@ defmodule BenchWeb.AuthorsLive do
     socket =
       socket
       |> assign(:filters, filters)
+      |> assign(:authors_count, Authors.authors_count())
       |> stream(:authors, Authors.list_authors(filters), reset: true)
       |> assign(:form, nil)
 
@@ -199,6 +200,36 @@ defmodule BenchWeb.AuthorsLive do
     socket = put_flash(socket, :info, "Author deleted successfully.")
 
     {:noreply, socket}
+  end
+
+  defp more_pages?(filters, authors_count) do
+    authors_count > filters.page * filters.per_page
+  end
+
+  defp pages(filters, authors_count) do
+    for page <- (filters.page - 2)..(filters.page + 2), page > 0 do
+      if page <= pagination_page_count(filters, authors_count) do
+        current_page? = page == filters.page
+        {page, current_page?}
+      end
+    end
+  end
+
+  defp pagination_page_count(filters, authors_count) do
+    ceil(authors_count / filters.per_page)
+  end
+
+  defp pagination_link_class(active, first_page?, last_page?) do
+    klass =
+      if active do
+        "flex items-center justify-center px-4 h-10 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+      else
+        "flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      end
+
+    klass = if first_page?, do: "#{klass} rounded-l-lg", else: klass
+    klass = if last_page?, do: "#{klass} rounded-r-lg", else: klass
+    klass
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
