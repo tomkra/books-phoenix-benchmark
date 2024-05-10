@@ -2,7 +2,7 @@ defmodule Bench.Filter do
   import Ecto.Query
 
   def paginate(query, %{page: page, per_page: per_page}) do
-    offset = per_page * (page - 1)
+    offset = max(per_page * (page - 1), 0)
 
     query
     |> limit(^per_page)

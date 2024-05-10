@@ -4,13 +4,16 @@ defmodule BenchWeb.AuthorsLive do
   alias Bench.Authors.Author
   alias Bench.Filter
 
+  @default_page "1"
+  @default_per_page "25"
+
   def mount(_params, _session, socket) do
-    {:ok, socket, temporary_assigns: [authors: []]}
+    {:ok, socket}
   end
 
   def handle_params(params, _uri, socket) do
-    page = 1
-    per_page = 20
+    page = (params["filters"]["page"] || @default_page) |> String.to_integer()
+    per_page = (params["filters"]["per_page"] || @default_per_page) |> String.to_integer()
 
     filters = %{
       page: page,
@@ -22,15 +25,8 @@ defmodule BenchWeb.AuthorsLive do
     socket =
       socket
       |> assign(:filters, filters)
-      |> stream(:authors, Authors.list_authors(filters))
+      |> stream(:authors, Authors.list_authors(filters), reset: true)
       |> assign(:form, nil)
-
-    # socket =
-    #   assign(socket,
-    #     filters: filters,
-    #     authors: Bench.Authors.list_authors(filters),
-    #     form: nil
-    #   )
 
     {:noreply, socket}
   end
@@ -123,14 +119,18 @@ defmodule BenchWeb.AuthorsLive do
   end
 
   def sort_link(assigns) do
-    ~H"""
-    <.sort_link_shared
-      path={
-        ~p"/authors?#{%{filters: %{sort_by: @sort_by, sort_order: Filter.next_sort_order(@filters.sort_order)}}}"
+    params = %{
+      filters: %{
+        assigns.filters
+        | sort_by: assigns.sort_by,
+          sort_order: Filter.next_sort_order(assigns.filters.sort_order)
       }
-      filters={@filters}
-      sort_by={@sort_by}
-    >
+    }
+
+    assigns = assign(assigns, params: params)
+
+    ~H"""
+    <.sort_link_shared path={~p"/authors?#{@params}"} filters={@filters} sort_by={@sort_by}>
       <%= render_slot(@inner_block) %>
     </.sort_link_shared>
     """
@@ -189,10 +189,6 @@ defmodule BenchWeb.AuthorsLive do
   def handle_event("edit", %{"id" => id}, socket) do
     author = Authors.get_author!(id)
     {:noreply, assign_form(socket, Authors.change_author(author))}
-  end
-
-  def handle_event("update", %{"author" => author_params}, socket) do
-    {:noreply, socket}
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
