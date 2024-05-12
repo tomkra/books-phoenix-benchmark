@@ -8,12 +8,13 @@ defmodule BenchWeb.AuthorsLive do
   @default_per_page "25"
 
   def mount(_params, _session, socket) do
+    socket = socket |> assign(:authors_count, Authors.authors_count())
     {:ok, socket}
   end
 
   def handle_params(params, _uri, socket) do
-    page = (params["filters"]["page"] || @default_page) |> String.to_integer()
-    per_page = (params["filters"]["per_page"] || @default_per_page) |> String.to_integer()
+    page = param_to_integer(params["filters"]["page"], @default_page)
+    per_page = param_to_integer(params["filters"]["per_page"], @default_per_page)
 
     filters = %{
       page: page,
@@ -25,7 +26,6 @@ defmodule BenchWeb.AuthorsLive do
     socket =
       socket
       |> assign(:filters, filters)
-      |> assign(:authors_count, Authors.authors_count())
       |> stream(:authors, Authors.list_authors(filters), reset: true)
       |> assign(:form, nil)
 
@@ -234,5 +234,14 @@ defmodule BenchWeb.AuthorsLive do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, form: to_form(changeset))
+  end
+
+  defp param_to_integer(nil, default), do: default
+
+  defp param_to_integer(param, default) do
+    case Integer.parse(param) do
+      {number, _} -> number
+      :error -> default
+    end
   end
 end
