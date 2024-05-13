@@ -68,40 +68,12 @@
 </div>
 
 <div class="flex justify-center mt-4">
-  <nav aria-label="Page navigation">
-    <ul class="inline-flex -space-x-px text-base h-10">
-      <li>
-        <.link
-          :if={@filters.page > 1}
-          patch={~p"/authors?#{%{filters: %{@filters | page: @filters.page - 1}}}"}
-          class={pagination_link_class(false, true, false)}
-        >
-          Previous
-        </.link>
-      </li>
-      <li :for={{page, active} <- pages(@filters, @authors_count)} page={page} active={active}>
-        <.link
-          patch={~p"/authors?#{%{filters: %{@filters | page: page}}}"}
-          class={
-            pagination_link_class(
-              active,
-              @filters.page == 1 && @filters.page == page,
-              @filters.page == page && pagination_page_count(@filters, @authors_count) == page
-            )
-          }
-        >
-          <%= page %>
-        </.link>
-      </li>
-      <li>
-        <.link
-          :if={more_pages?(@filters, @authors_count)}
-          patch={~p"/authors?#{%{filters: %{@filters | page: @filters.page + 1}}}"}
-          class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-        >
-          Next
-        </.link>
-      </li>
-    </ul>
-  </nav>
+  <BenchWeb.Components.Pagination.pagination
+    module={BenchWeb.Components.Pagination}
+    id="pagination"
+    path="authors"
+    page={@filters.page}
+    filters={@filters}
+    total_count={@authors_count}
+  />
 </div>
