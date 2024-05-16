@@ -1,8 +1,10 @@
 defmodule BenchWeb.AuthorsLive do
   use BenchWeb, :live_view
+
   alias Bench.Authors
   alias Bench.Authors.Author
   alias Bench.Filter
+  import BenchWeb.Components.Pagination
 
   def mount(_params, _session, socket) do
     socket = socket |> assign(:authors_count, Authors.authors_count())
