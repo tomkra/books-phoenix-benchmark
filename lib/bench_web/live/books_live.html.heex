@@ -27,19 +27,29 @@
     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
       <tr>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("ID") %>
+          <.sort_link sort_by={:id} filters={@filters}>
+            <%= gettext("ID") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Title") %>
+          <.sort_link sort_by={:title} filters={@filters}>
+            <%= gettext("Title") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("ISBN") %>
+          <.sort_link sort_by={:isbn} filters={@filters}>
+            <%= gettext("ISBN") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Year published") %>
+          <.sort_link sort_by={:year} filters={@filters}>
+            <%= gettext("Year published") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
-          <%= gettext("Price") %>
+          <.sort_link sort_by={:price} filters={@filters}>
+            <%= gettext("Price") %>
+          </.sort_link>
         </th>
         <th scope="col" class="px-6 py-3">
           <%= gettext("Author") %>
@@ -50,9 +60,17 @@
       </tr>
     </thead>
     <tbody>
-      <.book :for={book <- @books} book={book} />
+      <.book :for={{book_id, book} <- @streams.books} book={book} book_id={book_id} />
     </tbody>
   </table>
 </div>
 
-<div class="flex justify-center mt-4"></div>
+<div class="flex justify-center mt-4">
+  <.pagination
+    id="pagination"
+    path="books"
+    page={@filters.page}
+    filters={@filters}
+    total_count={@books_count}
+  />
+</div>

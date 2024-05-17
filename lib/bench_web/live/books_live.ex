@@ -1,21 +1,31 @@
 defmodule BenchWeb.BooksLive do
   use BenchWeb, :live_view
   alias Bench.Books
+  alias Bench.Filter
+  import BenchWeb.Components.Pagination
 
   def mount(_params, _session, socket) do
-    {:ok, socket, temporary_assigns: [books: Books.list_books_with_author()]}
+    {:ok, assign(socket, :books_count, Books.books_count())}
   end
 
-  def handle_params(_params, _uri, socket) do
-    page = 1
-    per_page = 20
+  def handle_params(params, _uri, socket) do
+    filter_params = params["filters"] || %{}
+
+    page = Filter.param_to_integer(filter_params["page"], 1)
+    per_page = Filter.param_to_integer(filter_params["per_page"], 20)
 
     filters = %{
       page: page,
-      per_page: per_page
+      per_page: per_page,
+      sort_by: Filter.valid_sort_by(filter_params),
+      sort_order: Filter.valid_sort_order(filter_params)
     }
 
-    socket = assign(socket, filters: filters, books: Books.list_books_with_author(filters))
+    socket =
+      socket
+      |> assign(:filters, filters)
+      |> stream(:books, Books.list_books_with_author(filters), reset: true)
+      |> assign(:form, nil)
 
     {:noreply, socket}
   end
@@ -63,6 +73,24 @@ defmodule BenchWeb.BooksLive do
         </button>
       </td>
     </tr>
+    """
+  end
+
+  def sort_link(assigns) do
+    params = %{
+      filters: %{
+        assigns.filters
+        | sort_by: assigns.sort_by,
+          sort_order: Filter.next_sort_order(assigns.filters.sort_order)
+      }
+    }
+
+    assigns = assign(assigns, params: params)
+
+    ~H"""
+    <.sort_link_shared path={~p"/books?#{@params}"} filters={@filters} sort_by={@sort_by}>
+      <%= render_slot(@inner_block) %>
+    </.sort_link_shared>
     """
   end
 end

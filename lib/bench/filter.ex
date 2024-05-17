@@ -23,4 +23,26 @@ defmodule Bench.Filter do
       :desc -> :asc
     end
   end
+
+  def valid_sort_by(%{"sort_by" => sort_by})
+      when sort_by in ~w(id name birth death books_count) do
+    String.to_atom(sort_by)
+  end
+
+  def valid_sort_by(_params), do: :id
+
+  def valid_sort_order(%{"sort_order" => sort_order}) when sort_order in ~w(asc desc) do
+    String.to_atom(sort_order)
+  end
+
+  def valid_sort_order(_params), do: :desc
+
+  def param_to_integer(nil, default), do: default
+
+  def param_to_integer(param, default) do
+    case Integer.parse(param) do
+      {number, _} -> number
+      :error -> default
+    end
+  end
 end

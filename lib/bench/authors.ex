@@ -10,10 +10,10 @@ defmodule Bench.Authors do
     Repo.all(from a in Author, order_by: [desc: a.id])
   end
 
-  def list_authors(filters) when is_map(filters) do
+  def list_authors(params) when is_map(params) do
     from(Author)
-    |> Filter.paginate(filters)
-    |> Filter.sort(filters)
+    |> Filter.paginate(params)
+    |> Filter.sort(params)
     |> Repo.all()
   end
 

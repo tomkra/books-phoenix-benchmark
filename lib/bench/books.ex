@@ -15,9 +15,10 @@ defmodule Bench.Books do
     |> Repo.preload(:author)
   end
 
-  def list_books_with_author(options) when is_map(options) do
+  def list_books_with_author(filters) when is_map(filters) do
     from(Book)
-    |> Filter.paginate(options)
+    |> Filter.paginate(filters)
+    |> Filter.sort(filters)
     |> Repo.all()
     |> Repo.preload(:author)
   end
@@ -36,5 +37,9 @@ defmodule Bench.Books do
     book
     |> Book.changeset(attrs)
     |> Repo.update()
+  end
+
+  def books_count do
+    Repo.aggregate(Book, :count, :id)
   end
 end

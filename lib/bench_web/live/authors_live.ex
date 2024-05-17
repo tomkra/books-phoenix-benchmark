@@ -14,14 +14,14 @@ defmodule BenchWeb.AuthorsLive do
   def handle_params(params, _uri, socket) do
     filter_params = params["filters"] || %{}
 
-    page = param_to_integer(filter_params["page"], 1)
-    per_page = param_to_integer(filter_params["per_page"], 20)
+    page = Filter.param_to_integer(filter_params["page"], 1)
+    per_page = Filter.param_to_integer(filter_params["per_page"], 20)
 
     filters = %{
       page: page,
       per_page: per_page,
-      sort_by: valid_sort_by(filter_params),
-      sort_order: valid_sort_order(filter_params)
+      sort_by: Filter.valid_sort_by(filter_params),
+      sort_order: Filter.valid_sort_order(filter_params)
     }
 
     socket =
@@ -138,19 +138,6 @@ defmodule BenchWeb.AuthorsLive do
     """
   end
 
-  defp valid_sort_by(%{"sort_by" => sort_by})
-       when sort_by in ~w(id name birth death books_count) do
-    String.to_atom(sort_by)
-  end
-
-  defp valid_sort_by(_params), do: :id
-
-  defp valid_sort_order(%{"sort_order" => sort_order}) when sort_order in ~w(asc desc) do
-    String.to_atom(sort_order)
-  end
-
-  defp valid_sort_order(_params), do: :desc
-
   def handle_event("new", _, socket) do
     {:noreply, assign_form(socket, Authors.change_author(%Author{}))}
   end
@@ -205,14 +192,5 @@ defmodule BenchWeb.AuthorsLive do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, form: to_form(changeset))
-  end
-
-  defp param_to_integer(nil, default), do: default
-
-  defp param_to_integer(param, default) do
-    case Integer.parse(param) do
-      {number, _} -> number
-      :error -> default
-    end
   end
 end
