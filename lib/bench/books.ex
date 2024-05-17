@@ -29,14 +29,18 @@ defmodule Bench.Books do
     |> Repo.insert!()
   end
 
-  def delete_author(%Book{} = book) do
-    Repo.delete(book)
-  end
-
-  def change_author(%Book{} = book, attrs) do
+  def update_book(%Book{} = book, attrs \\ %{}) do
     book
     |> Book.changeset(attrs)
     |> Repo.update()
+  end
+
+  def delete_book(%Book{} = book) do
+    Repo.delete(book)
+  end
+
+  def change_book(%Book{} = book, attrs \\ %{}) do
+    Book.changeset(book, attrs)
   end
 
   def books_count do

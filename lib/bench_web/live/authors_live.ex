@@ -20,7 +20,7 @@ defmodule BenchWeb.AuthorsLive do
     filters = %{
       page: page,
       per_page: per_page,
-      sort_by: Filter.valid_sort_by(filter_params),
+      sort_by: valid_sort_by(filter_params),
       sort_order: Filter.valid_sort_order(filter_params)
     }
 
@@ -193,4 +193,11 @@ defmodule BenchWeb.AuthorsLive do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, form: to_form(changeset))
   end
+
+  defp valid_sort_by(%{"sort_by" => sort_by})
+       when sort_by in ~w(id name birth death books_count) do
+    String.to_atom(sort_by)
+  end
+
+  defp valid_sort_by(_params), do: :id
 end

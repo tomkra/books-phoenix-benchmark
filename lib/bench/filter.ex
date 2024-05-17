@@ -24,13 +24,6 @@ defmodule Bench.Filter do
     end
   end
 
-  def valid_sort_by(%{"sort_by" => sort_by})
-      when sort_by in ~w(id name birth death books_count) do
-    String.to_atom(sort_by)
-  end
-
-  def valid_sort_by(_params), do: :id
-
   def valid_sort_order(%{"sort_order" => sort_order}) when sort_order in ~w(asc desc) do
     String.to_atom(sort_order)
   end
