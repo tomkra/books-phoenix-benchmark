@@ -3,6 +3,7 @@ defmodule BenchWeb.BooksLive do
   alias Bench.{Books, Filter}
   alias Bench.Books.Book
   import BenchWeb.Components.Pagination
+  alias Bench.Repo
 
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :books_count, Books.books_count())}
@@ -164,6 +165,7 @@ defmodule BenchWeb.BooksLive do
 
     case Books.update_book(book, book_params) do
       {:ok, book} ->
+        book = Repo.preload(book, :author)
         socket = stream_insert(socket, :books, book)
         socket = put_flash(socket, :info, "Book updated successfully.")
         {:noreply, assign(socket, form: nil)}
@@ -176,6 +178,7 @@ defmodule BenchWeb.BooksLive do
   def handle_event("save", %{"book" => book_params}, socket) do
     case Books.create_book(book_params) do
       {:ok, book} ->
+        book = Repo.preload(book, :author)
         socket = stream_insert(socket, :books, book, at: 0)
         socket = put_flash(socket, :info, "Book created successfully.")
         book = Books.change_book(%Book{})

@@ -17,8 +17,8 @@ defmodule Bench.Books.Book do
   @doc false
   def changeset(book, attrs) do
     book
-    |> cast(attrs, [:title, :year_published, :isbn, :price, :available])
-    |> validate_required([:title, :isbn])
+    |> cast(attrs, [:title, :year_published, :isbn, :price, :available, :author_id])
+    |> validate_required([:title, :isbn, :author_id])
     |> validate_length(:title, max: 255)
     |> validate_number(:year_published, greater_than_or_equal_to: 0)
     # |> validate_format(:year_published, ~r/^\d+$/)

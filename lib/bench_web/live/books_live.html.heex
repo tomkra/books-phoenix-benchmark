@@ -64,7 +64,7 @@
         </th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="books" phx-update="stream">
       <.book :for={{book_id, book} <- @streams.books} book={book} id={book_id} />
     </tbody>
   </table>
