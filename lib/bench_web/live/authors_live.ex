@@ -6,33 +6,6 @@ defmodule BenchWeb.AuthorsLive do
   alias Bench.Filter
   import BenchWeb.Components.Pagination
 
-  def mount(_params, _session, socket) do
-    socket = socket |> assign(:authors_count, Authors.authors_count())
-    {:ok, socket}
-  end
-
-  def handle_params(params, _uri, socket) do
-    filter_params = params["filters"] || %{}
-
-    page = Filter.param_to_integer(filter_params["page"], 1)
-    per_page = Filter.param_to_integer(filter_params["per_page"], 20)
-
-    filters = %{
-      page: page,
-      per_page: per_page,
-      sort_by: valid_sort_by(filter_params),
-      sort_order: Filter.valid_sort_order(filter_params)
-    }
-
-    socket =
-      socket
-      |> assign(:filters, filters)
-      |> stream(:authors, Authors.list_authors(filters), reset: true)
-      |> assign(:form, nil)
-
-    {:noreply, socket}
-  end
-
   def author(assigns) do
     ~H"""
     <tr
@@ -120,6 +93,20 @@ defmodule BenchWeb.AuthorsLive do
     """
   end
 
+  def filter_form(assigns) do
+    ~H"""
+    <form phx-change="filter">
+      <input
+        type="text"
+        name="filters[name]"
+        placeholder="Search by name"
+        value={@filters[:name]}
+        class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light"
+      />
+    </form>
+    """
+  end
+
   def sort_link(assigns) do
     params = %{
       filters: %{
@@ -136,6 +123,34 @@ defmodule BenchWeb.AuthorsLive do
       <%= render_slot(@inner_block) %>
     </.sort_link_shared>
     """
+  end
+
+  def mount(_params, _session, socket) do
+    socket = socket |> assign(:authors_count, Authors.authors_count())
+    {:ok, socket}
+  end
+
+  def handle_params(params, _uri, socket) do
+    filter_params = params["filters"] || %{}
+
+    page = Filter.param_to_integer(filter_params["page"], 1)
+    per_page = Filter.param_to_integer(filter_params["per_page"], 20)
+
+    filters = %{
+      page: page,
+      per_page: per_page,
+      sort_by: valid_sort_by(filter_params),
+      sort_order: Filter.valid_sort_order(filter_params),
+      name: filter_params["name"] || ""
+    }
+
+    socket =
+      socket
+      |> assign(:filters, filters)
+      |> stream(:authors, Authors.list_authors(filters), reset: true)
+      |> assign(:form, nil)
+
+    {:noreply, socket}
   end
 
   def handle_event("new", _, socket) do
@@ -187,6 +202,12 @@ defmodule BenchWeb.AuthorsLive do
     socket = stream_delete(socket, :authors, author)
     socket = put_flash(socket, :info, "Author deleted successfully.")
 
+    {:noreply, socket}
+  end
+
+  def handle_event("filter", %{"filters" => %{"name" => name}}, socket) do
+    filters = Map.put(socket.assigns.filters, :name, name)
+    socket = push_patch(socket, to: ~p"/authors?#{%{filters: filters}}")
     {:noreply, socket}
   end
 
