@@ -4,6 +4,20 @@ defmodule Bench.Books do
   alias Bench.Books.Book
   alias Bench.Filter
 
+  @topic inspect(__MODULE__)
+
+  def subscribe do
+    Phoenix.PubSub.subscribe(Bench.PubSub, @topic)
+  end
+
+  def broadcast({:ok, book}, tag) do
+    Phoenix.PubSub.broadcast(Bench.PubSub, @topic, {tag, book})
+
+    {:ok, book}
+  end
+
+  def broadcast({:error, _changeset} = error, _tag), do: error
+
   def get_book!(id), do: Repo.get!(Book, id)
 
   def list_books do
@@ -46,16 +60,20 @@ defmodule Bench.Books do
     %Book{}
     |> Book.changeset(attrs)
     |> Repo.insert()
+    |> broadcast(:book_created)
   end
 
   def update_book(%Book{} = book, attrs \\ %{}) do
     book
     |> Book.changeset(attrs)
     |> Repo.update()
+    |> broadcast(:book_updated)
   end
 
   def delete_book(%Book{} = book) do
-    Repo.delete(book)
+    book
+    |> Repo.delete()
+    |> broadcast(:book_deleted)
   end
 
   def change_book(%Book{} = book, attrs \\ %{}) do

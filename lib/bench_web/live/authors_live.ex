@@ -126,6 +126,8 @@ defmodule BenchWeb.AuthorsLive do
   end
 
   def mount(_params, _session, socket) do
+    if connected?(socket), do: Authors.subscribe()
+
     socket = socket |> assign(:authors_count, Authors.authors_count())
     {:ok, socket}
   end
@@ -221,4 +223,18 @@ defmodule BenchWeb.AuthorsLive do
   end
 
   defp valid_sort_by(_params), do: :id
+
+  def handle_info({:author_created, author}, socket) do
+    socket = update(socket, :count, &(&1 + 1))
+    socket = stream_insert(socket, :authors, author, at: 0)
+    {:noreply, socket}
+  end
+
+  def handle_info({:author_updated, author}, socket) do
+    {:noreply, stream_insert(socket, :authors, author)}
+  end
+
+  def handle_info({:author_deleted, author}, socket) do
+    {:noreply, stream_delete(socket, :authors, author)}
+  end
 end

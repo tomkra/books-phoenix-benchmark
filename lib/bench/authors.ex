@@ -4,6 +4,20 @@ defmodule Bench.Authors do
   alias Bench.Authors.Author
   alias Bench.Filter
 
+  @topic inspect(__MODULE__)
+
+  def subscribe do
+    Phoenix.PubSub.subscribe(Bench.PubSub, @topic)
+  end
+
+  def broadcast({:ok, author}, tag) do
+    Phoenix.PubSub.broadcast(Bench.PubSub, @topic, {tag, author})
+
+    {:ok, author}
+  end
+
+  def broadcast({:error, _changeset} = error, _tag), do: error
+
   def get_author!(id), do: Repo.get!(Author, id)
 
   def list_authors do
@@ -28,16 +42,20 @@ defmodule Bench.Authors do
     %Author{}
     |> Author.changeset(attrs)
     |> Repo.insert()
+    |> broadcast(:author_created)
   end
 
   def update_author(%Author{} = author, attrs \\ %{}) do
     author
     |> Author.changeset(attrs)
     |> Repo.update()
+    |> broadcast(:author_updated)
   end
 
   def delete_author(%Author{} = author) do
-    Repo.delete(author)
+    author
+    |> Repo.delete()
+    |> broadcast(:author_deleted)
   end
 
   def change_author(%Author{} = author, attrs \\ %{}) do

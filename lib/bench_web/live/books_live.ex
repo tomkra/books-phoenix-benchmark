@@ -6,6 +6,8 @@ defmodule BenchWeb.BooksLive do
   alias Bench.Repo
 
   def mount(_params, _session, socket) do
+    if connected?(socket), do: Books.subscribe()
+
     authors = Bench.Authors.list_authors(%{sort_by: :name, sort_order: :asc})
 
     socket =
@@ -249,6 +251,24 @@ defmodule BenchWeb.BooksLive do
     filters = %{socket.assigns.filters | title: title, author_id: author_id}
     socket = push_patch(socket, to: ~p"/books?#{%{filters: filters}}")
     {:noreply, socket}
+  end
+
+  def handle_info({:book_created, book}, socket) do
+    socket = update(socket, :count, &(&1 + 1))
+    socket = stream_insert(socket, :books, with_author(book), at: 0)
+    {:noreply, socket}
+  end
+
+  def handle_info({:book_updated, book}, socket) do
+    {:noreply, stream_insert(socket, :books, with_author(book))}
+  end
+
+  def handle_info({:book_deleted, book}, socket) do
+    {:noreply, stream_delete(socket, :books, book)}
+  end
+
+  def with_author(book) do
+    Repo.preload(book, :author)
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
