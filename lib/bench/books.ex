@@ -17,11 +17,30 @@ defmodule Bench.Books do
 
   def list_books_with_author(filters) when is_map(filters) do
     from(Book)
+    |> filter_by_title(filters)
+    |> filter_by_author(filters)
     |> Filter.paginate(filters)
     |> Filter.sort(filters)
     |> Repo.all()
     |> Repo.preload(:author)
   end
+
+  defp filter_by_title(query, %{title: nil}), do: query
+  defp filter_by_title(query, %{title: ""}), do: query
+
+  defp filter_by_title(query, %{title: title}) do
+    from(b in query, where: ilike(b.title, ^"%#{title}%"))
+  end
+
+  defp filter_by_author(query, %{author_id: nil}), do: query
+  defp filter_by_author(query, %{author_id: ""}), do: query
+
+  defp filter_by_author(query, %{author_id: author_id}) do
+    IO.puts("author_id: #{author_id}")
+    from(a in query, where: a.author_id == ^author_id)
+  end
+
+  defp filter_by_author(query, _), do: query
 
   def create_book(attrs \\ %{}) do
     %Book{}

@@ -6,6 +6,13 @@ defmodule BenchWeb.BooksLive do
   alias Bench.Repo
 
   def mount(_params, _session, socket) do
+    authors = Bench.Authors.list_authors(%{sort_by: :name, sort_order: :asc})
+
+    socket =
+      assign(socket,
+        authors_options: [{"Select author", ""} | Enum.map(authors, &{&1.name, &1.id})]
+      )
+
     {:ok, assign(socket, :books_count, Books.books_count())}
   end
 
@@ -19,7 +26,9 @@ defmodule BenchWeb.BooksLive do
       page: page,
       per_page: per_page,
       sort_by: valid_sort_by(filter_params),
-      sort_order: Filter.valid_sort_order(filter_params)
+      sort_order: Filter.valid_sort_order(filter_params),
+      title: filter_params["title"] || "",
+      author_id: filter_params["author_id"] || ""
     }
 
     socket =
@@ -89,9 +98,6 @@ defmodule BenchWeb.BooksLive do
   end
 
   def book_form(assigns) do
-    authors = Bench.Authors.list_authors()
-    assigns = assign(assigns, authors_options: Enum.map(authors, &{&1.name, &1.id}))
-
     ~H"""
     <.form :if={@form} phx-value-id={@form.data.id} for={@form} phx-submit="save" id="book-form">
       <div class="flex space-x-5">
@@ -131,6 +137,35 @@ defmodule BenchWeb.BooksLive do
         </div>
       </div>
     </.form>
+    """
+  end
+
+  def filter_form(assigns) do
+    ~H"""
+    <form phx-change="filter">
+      <div class="flex space-x-5 items-center">
+        <div>
+          <input
+            type="text"
+            name="filters[title]"
+            placeholder="Search by title"
+            value={@filters[:title]}
+            class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light"
+          />
+        </div>
+        <div>
+          <select
+            name="filters[author_id]"
+            class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light"
+          >
+            <%= Phoenix.HTML.Form.options_for_select(
+              @authors_options,
+              @filters[:author_id]
+            ) %>
+          </select>
+        </div>
+      </div>
+    </form>
     """
   end
 
@@ -203,6 +238,16 @@ defmodule BenchWeb.BooksLive do
     socket = stream_delete(socket, :books, book)
     socket = put_flash(socket, :info, "Book deleted successfully.")
 
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "filter",
+        %{"filters" => %{"title" => title, "author_id" => author_id}},
+        socket
+      ) do
+    filters = %{socket.assigns.filters | title: title, author_id: author_id}
+    socket = push_patch(socket, to: ~p"/books?#{%{filters: filters}}")
     {:noreply, socket}
   end
 

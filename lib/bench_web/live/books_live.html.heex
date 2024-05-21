@@ -1,7 +1,7 @@
 <.title><%= gettext("Books") %></.title>
 
 <div class="mb-2 mt-2">
-  <.book_form form={@form} />
+  <.book_form form={@form} authors_options={@authors_options} />
 </div>
 
 <div class="relative overflow-x-auto sm:rounded-lg">
@@ -10,7 +10,9 @@
       justify-between pb-4
     ">
     <div class="bg-white dark:bg-gray-800">
-      <div class="relative mt-1"></div>
+      <div class="relative mt-1">
+        <.filter_form filters={@filters} authors_options={@authors_options} />
+      </div>
     </div>
 
     <span class="flex">

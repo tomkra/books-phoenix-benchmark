@@ -18,17 +18,11 @@ defmodule Bench.Authors do
     |> Repo.all()
   end
 
-  defp filter_by_name(query, %{name: nil}) do
-    query
-  end
-
-  defp filter_by_name(query, %{name: ""}) do
-    query
-  end
-
   defp filter_by_name(query, %{name: name}) do
     from(a in query, where: ilike(a.name, ^"%#{name}%"))
   end
+
+  defp filter_by_name(query, _), do: query
 
   def create_author(attrs \\ %{}) do
     %Author{}
